@@ -167,7 +167,11 @@ const OrderDetail: React.FC<OrderDetailProps> = ({
           <div className="status-timeline">
             <div
               className={`timeline-item ${
-                order.status === "pending" ? "active" : "completed"
+                order.status === "pending"
+                  ? "active"
+                  : ["accepted", "delayed", "completed"].includes(order.status)
+                  ? "completed"
+                  : "inactive"
               }`}
             >
               <div className="timeline-dot"></div>
@@ -175,22 +179,28 @@ const OrderDetail: React.FC<OrderDetailProps> = ({
             </div>
             <div
               className={`timeline-item ${
-                order.status === "accepted"
+                order.status === "accepted" || order.status === "delayed"
                   ? "active"
-                  : order.status === "pending"
-                  ? "pending"
+                  : order.status === "pending" ||
+                    order.status === "rejected" ||
+                    order.status === "cancelled"
+                  ? "inactive"
                   : "completed"
               }`}
             >
               <div className="timeline-dot"></div>
-              <span>Order Accepted</span>
+              <span>
+                {order.status === "delayed"
+                  ? "In Progress (Delayed)"
+                  : "In Progress"}
+              </span>
             </div>
             <div
               className={`timeline-item ${
                 order.status === "completed"
                   ? "active"
-                  : order.status === "accepted"
-                  ? "pending"
+                  : ["accepted", "delayed"].includes(order.status)
+                  ? "inactive"
                   : "inactive"
               }`}
             >
@@ -198,6 +208,15 @@ const OrderDetail: React.FC<OrderDetailProps> = ({
               <span>Preparation Complete</span>
             </div>
           </div>
+          {(order.status === "rejected" || order.status === "cancelled") && (
+            <div className="status-message cancelled">
+              <strong>
+                {order.status === "rejected"
+                  ? "⚠️ Order Rejected"
+                  : "✕ Order Cancelled"}
+              </strong>
+            </div>
+          )}
         </div>
       </div>
 
