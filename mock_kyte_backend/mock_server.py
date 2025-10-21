@@ -1,11 +1,13 @@
-from fastapi import FastAPI, HTTPException
+from fastapi import FastAPI, HTTPException, Request
 from fastapi.middleware.cors import CORSMiddleware
+from fastapi.responses import JSONResponse, Response
 import requests
 import json
 import random
 import time
+import hashlib
 from datetime import datetime
-from typing import List, Dict, Any
+from typing import List, Dict, Any, Optional
 
 app = FastAPI(title="Mock Kyte Backend")
 
@@ -123,12 +125,43 @@ async def simulate_order():
         raise HTTPException(status_code=500, detail=str(e))
 
 @app.get("/orders")
-async def get_orders():
-    """Get all orders from restaurant API"""
+async def get_orders(request: Request, since: Optional[str] = None):
+    """Get all orders from restaurant API with ETag support"""
     try:
-        response = requests.get(f"{RESTAURANT_API_URL}/orders/")
+        # Build URL with since parameter if provided
+        url = f"{RESTAURANT_API_URL}/orders/"
+        if since:
+            url += f"?since={since}"
+        
+        response = requests.get(url)
+        
         if response.status_code == 200:
-            return response.json()
+            orders = response.json()
+            
+            # Calculate ETag based on order data
+            if orders:
+                # Get latest updated_at timestamp and count
+                updated_times = [o.get('updated_at', '') for o in orders]
+                latest = max(updated_times) if updated_times else ''
+                etag_source = f"{latest}-{len(orders)}"
+                etag = hashlib.md5(etag_source.encode()).hexdigest()
+                
+                # Check If-None-Match header
+                if_none_match = request.headers.get('if-none-match', '').strip('"')
+                if if_none_match == etag:
+                    # Return 304 Not Modified
+                    return Response(status_code=304)
+                
+                # Return orders with ETag header
+                return JSONResponse(
+                    content=orders,
+                    headers={
+                        'ETag': f'"{etag}"',
+                        'Last-Modified': latest
+                    }
+                )
+            
+            return orders
         else:
             raise HTTPException(status_code=500, detail="Failed to fetch orders")
     except requests.exceptions.ConnectionError:

@@ -1,8 +1,10 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useRef } from "react";
 import "./App.css";
 import OrderSections from "./components/OrderSections";
 import OrderDetail from "./components/OrderDetail";
 import { getOrders, updateOrderStatus } from "./services/api";
+import { SmartPollingTransport } from "./utils/orderTransport";
+import { useSmartPolling } from "./hooks/useSmartPolling";
 
 interface OrderItem {
   name: string;
@@ -26,32 +28,36 @@ interface Order {
 }
 
 function App() {
-  const [orders, setOrders] = useState<Order[]>([]);
   const [selectedOrder, setSelectedOrder] = useState<Order | null>(null);
-  const [loading, setLoading] = useState(true);
+  
+  // Initialize smart polling transport
+  const transportRef = useRef(
+    new SmartPollingTransport({
+      baseInterval: 2000,
+      maxInterval: 30000,
+      backoffMultiplier: 1.5,
+      baseUrl: process.env.REACT_APP_API_URL || 'http://localhost:8000/api',
+    })
+  );
 
-  useEffect(() => {
-    fetchOrders();
-    // Poll for new orders every 5 seconds
-    const interval = setInterval(fetchOrders, 5000);
-    return () => clearInterval(interval);
-  }, []);
-
-  const fetchOrders = async () => {
-    try {
-      const response = await getOrders();
-      setOrders(response.data);
-      setLoading(false);
-    } catch (error) {
-      console.error("Error fetching orders:", error);
-      setLoading(false);
-    }
-  };
+  // Use smart polling hook
+  const { 
+    data: orders, 
+    isLoading, 
+    status, 
+    currentInterval,
+    refresh 
+  } = useSmartPolling<Order[]>(
+    () => transportRef.current.fetchOrders(),
+    2000,
+    30000
+  );
 
   const handleOrderAction = async (orderId: string, action: string) => {
     try {
       await updateOrderStatus(orderId, action);
-      await fetchOrders();
+      // Force immediate refresh after action
+      refresh();
       if (selectedOrder && selectedOrder.id === orderId) {
         setSelectedOrder(null);
       }
@@ -60,7 +66,7 @@ function App() {
     }
   };
 
-  if (loading) {
+  if (isLoading) {
     return (
       <div className="app">
         <div className="loading">Loading orders...</div>
@@ -73,15 +79,17 @@ function App() {
       <header className="app-header">
         <h1>Kyte Restaurant Dashboard</h1>
         <div className="status-indicator">
-          <span className="status-dot online"></span>
-          Connected to Kyte Backend
+          <span className={`status-dot ${status === 'connected' ? 'online' : status === 'polling' ? 'polling' : 'offline'}`}></span>
+          {status === 'connected' && 'Connected'}
+          {status === 'polling' && `Polling (${Math.round(currentInterval / 1000)}s)`}
+          {status === 'error' && 'Connection Error'}
         </div>
       </header>
 
       <div className="app-content">
         <div className="orders-section">
           <OrderSections
-            orders={orders}
+            orders={orders || []}
             onSelectOrder={setSelectedOrder}
             selectedOrderId={selectedOrder?.id}
           />
