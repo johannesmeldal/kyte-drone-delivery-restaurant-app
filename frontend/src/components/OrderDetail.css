@@ -354,11 +354,6 @@
   }
 }
 
-.alert-banner .alert-icon {
-  font-size: 2rem;
-  flex-shrink: 0;
-}
-
 .alert-banner div {
   flex: 1;
 }

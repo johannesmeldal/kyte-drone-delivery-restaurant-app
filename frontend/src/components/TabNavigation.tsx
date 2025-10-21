@@ -29,10 +29,10 @@ const TabNavigation: React.FC<TabNavigationProps> = ({
           }`}
           onClick={() => onTabChange("incoming")}
         >
-          <span className="tab-label">Incoming</span>
           {counts.incoming > 0 && (
             <span className="tab-badge">{counts.incoming}</span>
           )}
+          <span className="tab-label">Incoming</span>
         </button>
 
         <button
@@ -41,10 +41,10 @@ const TabNavigation: React.FC<TabNavigationProps> = ({
           }`}
           onClick={() => onTabChange("active")}
         >
-          <span className="tab-label">Active</span>
           {counts.active > 0 && (
             <span className="tab-badge">{counts.active}</span>
           )}
+          <span className="tab-label">Active</span>
         </button>
 
         <button
@@ -53,10 +53,10 @@ const TabNavigation: React.FC<TabNavigationProps> = ({
           }`}
           onClick={() => onTabChange("ready")}
         >
-          <span className="tab-label">Ready</span>
           {counts.ready > 0 && (
             <span className="tab-badge">{counts.ready}</span>
           )}
+          <span className="tab-label">Ready</span>
         </button>
       </div>
 
@@ -66,7 +66,6 @@ const TabNavigation: React.FC<TabNavigationProps> = ({
           onClick={onToggleSecondaryMenu}
           title="View history"
         >
-          <span className="hamburger-icon">☰</span>
           History
         </button>
 
@@ -102,4 +101,3 @@ const TabNavigation: React.FC<TabNavigationProps> = ({
 };
 
 export default TabNavigation;
-

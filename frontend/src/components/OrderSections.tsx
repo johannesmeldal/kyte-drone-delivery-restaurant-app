@@ -45,7 +45,9 @@ const OrderSections: React.FC<OrderSectionsProps> = ({
     (order) => order.status === "accepted" || order.status === "delayed"
   );
   const readyOrders = orders.filter((order) => order.status === "ready");
-  const completedOrders = orders.filter((order) => order.status === "completed");
+  const completedOrders = orders.filter(
+    (order) => order.status === "completed"
+  );
   const cancelledOrders = orders.filter(
     (order) => order.status === "rejected" || order.status === "cancelled"
   );
@@ -81,17 +83,17 @@ const OrderSections: React.FC<OrderSectionsProps> = ({
   const getTabInfo = () => {
     switch (activeTab) {
       case "incoming":
-        return { title: "Incoming Orders", color: "gray", icon: "📥" };
+        return { title: "Incoming Orders", color: "gray" };
       case "active":
-        return { title: "Active Orders", color: "blue", icon: "👨‍🍳" };
+        return { title: "Active Orders", color: "blue" };
       case "ready":
-        return { title: "Ready for Pickup", color: "orange", icon: "📦" };
+        return { title: "Ready for Pickup", color: "orange" };
       case "completed":
-        return { title: "Completed Orders", color: "green", icon: "✓" };
+        return { title: "Completed Orders", color: "green" };
       case "cancelled":
-        return { title: "Cancelled/Rejected", color: "red", icon: "✕" };
+        return { title: "Cancelled/Rejected", color: "red" };
       default:
-        return { title: "", color: "gray", icon: "" };
+        return { title: "", color: "gray" };
     }
   };
 
@@ -117,10 +119,7 @@ const OrderSections: React.FC<OrderSectionsProps> = ({
 
       <div className={`tab-content tab-${tabInfo.color}`}>
         <div className="tab-header">
-          <h2>
-            <span className="tab-icon">{tabInfo.icon}</span>
-            {tabInfo.title}
-          </h2>
+          <h2>{tabInfo.title}</h2>
           <span className="order-count">{displayedOrders.length}</span>
         </div>
 
@@ -147,8 +146,7 @@ const OrderSections: React.FC<OrderSectionsProps> = ({
                   />
                   {showWarning && (
                     <div className="waiting-warning">
-                      ⏰ Ready for {waitingMinutes} minutes — Consider nudging
-                      Kyte
+                      Ready for {waitingMinutes} minutes — Consider nudging Kyte
                     </div>
                   )}
                 </div>

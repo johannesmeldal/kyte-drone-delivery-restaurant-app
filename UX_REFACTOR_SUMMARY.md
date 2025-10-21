@@ -1,6 +1,7 @@
 # Restaurant Dashboard UX Refactor
 
 ## Overview
+
 Complete redesign of the restaurant dashboard to create a cleaner, more intuitive interface focused on the daily workflow of restaurant staff. The new design uses tab-based navigation with a dedicated "Ready" status for food awaiting drone pickup.
 
 ---
@@ -8,19 +9,23 @@ Complete redesign of the restaurant dashboard to create a cleaner, more intuitiv
 ## Key Changes
 
 ### 1. Tab-Based Navigation
+
 **Before:** Three vertical sections (Incoming, Active, Recent) all visible at once  
 **After:** Three main workflow tabs with badge counts + secondary history menu
 
 **Main Tabs (Always Visible):**
+
 - 🔵 **Incoming** (gray) - New orders pending acceptance
 - 🔵 **Active** (blue) - Orders being prepared
 - 🟠 **Ready** (orange) - Food ready for drone pickup
 
 **Secondary Menu (Hamburger):**
+
 - ✅ **Completed** - Successfully delivered orders
 - ❌ **Cancelled/Rejected** - Failed orders
 
 **Benefits:**
+
 - Focus on one workflow stage at a time
 - Reduces visual clutter and scrolling
 - Badge counts show order counts at a glance
@@ -34,12 +39,14 @@ Complete redesign of the restaurant dashboard to create a cleaner, more intuitiv
 **Solution:** Add "Ready" status representing food waiting for drone pickup
 
 **Ready Tab Features:**
+
 - 📞 **Call Drone** - Request immediate pickup
 - ✅ **Confirm Pickup** - Mark order as delivered
 - ⚠️ **Report Issue** - Report problems (damage, wrong order, etc.)
 - ⏰ **Auto-banner** - Alerts if order waits >10 minutes
 
 **Status Flow:**
+
 ```
 Incoming → Active → Ready → Completed
    ↓          ↓        ↓
@@ -51,20 +58,24 @@ Rejected  Cancelled  (Same)
 ### 3. Context-Specific Actions
 
 **Incoming Tab (pending):**
+
 - ✓ Accept Order → moves to Active
 - ✕ Reject Order → moves to history
 
 **Active Tab (accepted/delayed):**
+
 - ⏱ Mark as Delayed → updates status, stays in Active
 - ✕ Cancel Preparation → moves to history
 - 📦 Mark as Ready → moves to Ready tab
 
 **Ready Tab (ready):**
+
 - 📞 Call Drone → triggers mock API call
 - ✅ Confirm Pickup → moves to Completed
 - ⚠️ Report Issue → submits issue report
 
 **History (completed/cancelled/rejected):**
+
 - View-only, no actions available
 
 ---
@@ -72,11 +83,13 @@ Rejected  Cancelled  (Same)
 ### 4. Smart Alerts & Notifications
 
 **10-Minute Warning:**
+
 - Auto-banner appears in Ready tab if order waits >10 minutes
 - "Nudge Kyte" button to remind them about pickup
 - Banner pulses gently to draw attention
 
 **Waiting Time Indicators:**
+
 - Shows "Ready for X minutes" in order details
 - Helps staff identify delayed pickups quickly
 
@@ -85,6 +98,7 @@ Rejected  Cancelled  (Same)
 ### 5. Visual Design Improvements
 
 **Color Coding:**
+
 - Gray: Incoming orders (neutral, needs action)
 - Blue: Active orders (in progress)
 - Orange: Ready orders (urgent, waiting for pickup)
@@ -92,11 +106,13 @@ Rejected  Cancelled  (Same)
 - Red: Cancelled/Rejected (failure)
 
 **Badge Counts:**
+
 - Red badges with pulse animation for pending actions
 - Shows count on each tab (e.g., "Active (3)")
 - Only visible when count > 0
 
 **Clean Layout:**
+
 - One tab visible at a time
 - Large, clear action buttons
 - Emoji icons for quick recognition
@@ -109,6 +125,7 @@ Rejected  Cancelled  (Same)
 ### Backend Changes
 
 **Database:**
+
 ```python
 # New field in Order model
 ready_at = DateTimeField(null=True, blank=True)
@@ -118,11 +135,13 @@ ready_at = DateTimeField(null=True, blank=True)
 ```
 
 **View Logic:**
+
 - Sets `ready_at` timestamp when status → 'ready'
 - Maintains `completed_at` for final completion
 - Both timestamps visible in order details
 
 **Migration:**
+
 ```bash
 python manage.py makemigrations
 python manage.py migrate
@@ -131,10 +150,12 @@ python manage.py migrate
 ### Frontend Changes
 
 **New Components:**
+
 1. `TabNavigation.tsx` - Main tab bar with badges
 2. `TabNavigation.css` - Styling for tabs and dropdown
 
 **Updated Components:**
+
 1. `OrderSections.tsx` - Refactored for tab-based display
 2. `OrderSections.css` - New styles for tab content
 3. `OrderDetail.tsx` - Context-specific action buttons
@@ -146,6 +167,7 @@ python manage.py migrate
 ## User Workflow Examples
 
 ### Accepting New Order
+
 1. Click **Incoming** tab (badge shows count)
 2. Click order card to view details
 3. Click **Accept Order** button
@@ -153,6 +175,7 @@ python manage.py migrate
 5. Badge updates immediately
 
 ### Completing an Order
+
 1. Order is in **Active** tab (being prepared)
 2. Click order card to view details
 3. Click **Mark as Ready** button
@@ -163,6 +186,7 @@ python manage.py migrate
 8. Order moves to **Completed** (history)
 
 ### Handling Delayed Pickup
+
 1. Order in **Ready** tab for 12 minutes
 2. Auto-banner appears: "Ready for 12 minutes — Nudge Kyte?"
 3. Staff clicks **Nudge Kyte** button
@@ -185,6 +209,7 @@ python manage.py migrate
 ## Testing the New System
 
 1. **Start all services:**
+
    ```bash
    # Backend
    cd backend && python3 manage.py runserver
@@ -197,11 +222,13 @@ python manage.py migrate
    ```
 
 2. **Create test order:**
+
    ```bash
    curl -X POST http://localhost:8001/simulate-order
    ```
 
 3. **Test the workflow:**
+
    - Order appears in **Incoming** tab
    - Click to view, then **Accept**
    - Check **Active** tab - order is there
@@ -221,6 +248,7 @@ python manage.py migrate
 ## Future Enhancements
 
 Possible additions:
+
 - Real-time notifications (WebSocket)
 - Bulk actions (accept multiple orders)
 - Time estimates (prep time, pickup ETA)
@@ -234,11 +262,13 @@ Possible additions:
 ## Migration Notes
 
 **Existing Orders:**
+
 - Orders with `status='completed'` remain in Completed history
 - No `ready_at` timestamp (shows as null)
 - No data loss, all fields preserved
 
 **Status Mapping:**
+
 - `pending` → Incoming tab
 - `accepted`/`delayed` → Active tab
 - `ready` → Ready tab (new!)
@@ -274,4 +304,3 @@ Possible additions:
 **Commit:** `59e8295 - Major UX refactor: Add tab-based navigation with Ready status`  
 **Date:** October 21, 2025  
 **Status:** ✅ Completed and pushed to GitHub
-
