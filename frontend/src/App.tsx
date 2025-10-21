@@ -29,24 +29,24 @@ interface Order {
 
 function App() {
   const [selectedOrder, setSelectedOrder] = useState<Order | null>(null);
-  
+
   // Initialize smart polling transport
   const transportRef = useRef(
     new SmartPollingTransport({
       baseInterval: 2000,
       maxInterval: 30000,
       backoffMultiplier: 1.5,
-      baseUrl: process.env.REACT_APP_API_URL || 'http://localhost:8000/api',
+      baseUrl: process.env.REACT_APP_API_URL || "http://localhost:8000/api",
     })
   );
 
   // Use smart polling hook
-  const { 
-    data: orders, 
-    isLoading, 
-    status, 
+  const {
+    data: orders,
+    isLoading,
+    status,
     currentInterval,
-    refresh 
+    refresh,
   } = useSmartPolling<Order[]>(
     () => transportRef.current.fetchOrders(),
     2000,
@@ -79,10 +79,19 @@ function App() {
       <header className="app-header">
         <h1>Kyte Restaurant Dashboard</h1>
         <div className="status-indicator">
-          <span className={`status-dot ${status === 'connected' ? 'online' : status === 'polling' ? 'polling' : 'offline'}`}></span>
-          {status === 'connected' && 'Connected'}
-          {status === 'polling' && `Polling (${Math.round(currentInterval / 1000)}s)`}
-          {status === 'error' && 'Connection Error'}
+          <span
+            className={`status-dot ${
+              status === "connected"
+                ? "online"
+                : status === "polling"
+                ? "polling"
+                : "offline"
+            }`}
+          ></span>
+          {status === "connected" && "Connected"}
+          {status === "polling" &&
+            `Polling (${Math.round(currentInterval / 1000)}s)`}
+          {status === "error" && "Connection Error"}
         </div>
       </header>
 

@@ -1,3 +1,5 @@
+import axios, { AxiosInstance } from 'axios';
+
 interface TransportConfig {
   baseInterval: number;
   maxInterval: number;
@@ -16,16 +18,24 @@ export class SmartPollingTransport {
   private lastModified: string | null = null;
   private consecutiveNoChanges = 0;
   private config: TransportConfig;
+  private api: AxiosInstance;
 
   constructor(config: TransportConfig) {
     this.config = config;
     this.interval = config.baseInterval;
+    
+    // Create axios instance with proper configuration
+    this.api = axios.create({
+      baseURL: config.baseUrl,
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      validateStatus: (status) => status === 200 || status === 304,
+    });
   }
 
   async fetchOrders(since?: string): Promise<FetchResult> {
-    const headers: Record<string, string> = {
-      'Content-Type': 'application/json',
-    };
+    const headers: Record<string, string> = {};
 
     // Add conditional request headers
     if (this.lastETag) {
@@ -37,14 +47,11 @@ export class SmartPollingTransport {
 
     // Build URL with optional since parameter
     const url = since 
-      ? `${this.config.baseUrl}/orders/?since=${encodeURIComponent(since)}`
-      : `${this.config.baseUrl}/orders/`;
+      ? `/orders/?since=${encodeURIComponent(since)}`
+      : '/orders/';
 
     try {
-      const response = await fetch(url, { 
-        headers,
-        method: 'GET',
-      });
+      const response = await this.api.get(url, { headers });
 
       // Handle 304 Not Modified
       if (response.status === 304) {
@@ -54,17 +61,17 @@ export class SmartPollingTransport {
       }
 
       // Handle successful response
-      if (response.ok) {
+      if (response.status === 200) {
         this.onDataChanged();
         
         // Update cached headers
-        const newETag = response.headers.get('ETag');
-        const newLastModified = response.headers.get('Last-Modified');
+        const newETag = response.headers['etag'] || response.headers['ETag'];
+        const newLastModified = response.headers['last-modified'] || response.headers['Last-Modified'];
         
         if (newETag) this.lastETag = newETag;
         if (newLastModified) this.lastModified = newLastModified;
 
-        const data = await response.json();
+        const data = response.data;
         console.log(`[SmartPolling] Data updated - ${data.length} orders`);
         return { notModified: false, data };
       }
