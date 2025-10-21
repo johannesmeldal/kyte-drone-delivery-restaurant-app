@@ -7,7 +7,7 @@ echo "🚀 Starting deployment to AWS EC2..."
 REMOTE_USER="ubuntu"
 REMOTE_HOST="16.171.195.58"
 REMOTE_PATH="/home/ubuntu/kyte-restaurant-app"
-SSH_KEY="~/.ssh/ided25519-aws-ec2"
+SSH_KEY="~/.ssh/id_rsa"
 
 echo "📦 Building frontend..."
 cd frontend
