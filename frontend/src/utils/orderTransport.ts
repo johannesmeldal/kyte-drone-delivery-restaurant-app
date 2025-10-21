@@ -77,8 +77,14 @@ export class SmartPollingTransport {
       }
 
       throw new Error(`HTTP ${response.status}: ${response.statusText}`);
-    } catch (error) {
+    } catch (error: any) {
       console.error('[SmartPolling] Fetch error:', error);
+      console.error('[SmartPolling] Error details:', {
+        message: error.message,
+        code: error.code,
+        response: error.response?.data,
+        status: error.response?.status
+      });
       throw error;
     }
   }
