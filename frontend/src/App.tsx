@@ -1,8 +1,8 @@
-import React, { useState, useEffect, useRef } from "react";
+import React, { useState, useRef } from "react";
 import "./App.css";
 import OrderSections from "./components/OrderSections";
 import OrderDetail from "./components/OrderDetail";
-import { getOrders, updateOrderStatus } from "./services/api";
+import { updateOrderStatus } from "./services/api";
 import { SmartPollingTransport } from "./utils/orderTransport";
 import { useSmartPolling } from "./hooks/useSmartPolling";
 

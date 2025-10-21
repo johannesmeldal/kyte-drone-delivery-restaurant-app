@@ -1,4 +1,4 @@
-import api from '../services/api';
+import api from "../services/api";
 
 interface TransportConfig {
   baseInterval: number;
@@ -28,26 +28,26 @@ export class SmartPollingTransport {
 
     // Add conditional request headers
     if (this.lastETag) {
-      headers['If-None-Match'] = this.lastETag;
+      headers["If-None-Match"] = this.lastETag;
     }
     if (this.lastModified) {
-      headers['If-Modified-Since'] = this.lastModified;
+      headers["If-Modified-Since"] = this.lastModified;
     }
 
     // Build URL with optional since parameter
-    const url = since 
+    const url = since
       ? `/orders/?since=${encodeURIComponent(since)}`
-      : '/orders/';
+      : "/orders/";
 
     try {
-      const response = await api.get(url, { 
+      const response = await api.get(url, {
         headers,
-        validateStatus: (status) => status === 200 || status === 304
+        validateStatus: (status) => status === 200 || status === 304,
       });
 
       // Handle 304 Not Modified
       if (response.status === 304) {
-        console.log('[SmartPolling] 304 Not Modified - data unchanged');
+        console.log("[SmartPolling] 304 Not Modified - data unchanged");
         this.onNoChange();
         return { notModified: true, data: null };
       }
@@ -55,11 +55,13 @@ export class SmartPollingTransport {
       // Handle successful response
       if (response.status === 200) {
         this.onDataChanged();
-        
+
         // Update cached headers
-        const newETag = response.headers['etag'] || response.headers['ETag'];
-        const newLastModified = response.headers['last-modified'] || response.headers['Last-Modified'];
-        
+        const newETag = response.headers["etag"] || response.headers["ETag"];
+        const newLastModified =
+          response.headers["last-modified"] ||
+          response.headers["Last-Modified"];
+
         if (newETag) this.lastETag = newETag;
         if (newLastModified) this.lastModified = newLastModified;
 
@@ -70,12 +72,12 @@ export class SmartPollingTransport {
 
       throw new Error(`HTTP ${response.status}: ${response.statusText}`);
     } catch (error: any) {
-      console.error('[SmartPolling] Fetch error:', error);
-      console.error('[SmartPolling] Error details:', {
+      console.error("[SmartPolling] Fetch error:", error);
+      console.error("[SmartPolling] Error details:", {
         message: error.message,
         code: error.code,
         response: error.response?.data,
-        status: error.response?.status
+        status: error.response?.status,
       });
       throw error;
     }
@@ -83,22 +85,26 @@ export class SmartPollingTransport {
 
   private onNoChange(): void {
     this.consecutiveNoChanges++;
-    
+
     // Increase interval with backoff
     const newInterval = Math.min(
       this.interval * this.config.backoffMultiplier,
       this.config.maxInterval
     );
-    
+
     if (newInterval !== this.interval) {
-      console.log(`[SmartPolling] Backing off: ${this.interval}ms → ${newInterval}ms`);
+      console.log(
+        `[SmartPolling] Backing off: ${this.interval}ms → ${newInterval}ms`
+      );
       this.interval = newInterval;
     }
   }
 
   private onDataChanged(): void {
     if (this.consecutiveNoChanges > 0) {
-      console.log(`[SmartPolling] Data changed - resetting to base interval: ${this.config.baseInterval}ms`);
+      console.log(
+        `[SmartPolling] Data changed - resetting to base interval: ${this.config.baseInterval}ms`
+      );
     }
     this.consecutiveNoChanges = 0;
     this.interval = this.config.baseInterval;
@@ -117,4 +123,3 @@ export class SmartPollingTransport {
     };
   }
 }
-
