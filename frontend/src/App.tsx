@@ -52,6 +52,15 @@ function App() {
     30000
   );
 
+  console.log(
+    "[App] Render - orders:",
+    orders?.length,
+    "status:",
+    status,
+    "isLoading:",
+    isLoading
+  );
+
   const handleOrderAction = async (orderId: string, action: string) => {
     try {
       await updateOrderStatus(orderId, action);

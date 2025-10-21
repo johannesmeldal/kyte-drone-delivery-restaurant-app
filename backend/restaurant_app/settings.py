@@ -92,6 +92,27 @@ CORS_ALLOWED_ORIGINS = [
 
 CORS_ALLOW_ALL_ORIGINS = DEBUG
 
+# Allow custom headers for ETag and conditional requests
+CORS_ALLOW_HEADERS = [
+    'accept',
+    'accept-encoding',
+    'authorization',
+    'content-type',
+    'dnt',
+    'origin',
+    'user-agent',
+    'x-csrftoken',
+    'x-requested-with',
+    'if-none-match',
+    'if-modified-since',
+]
+
+# Expose ETag and Last-Modified headers to frontend
+CORS_EXPOSE_HEADERS = [
+    'etag',
+    'last-modified',
+]
+
 # REST Framework settings
 REST_FRAMEWORK = {
     'DEFAULT_PERMISSION_CLASSES': [
