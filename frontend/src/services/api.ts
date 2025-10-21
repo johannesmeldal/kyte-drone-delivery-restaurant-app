@@ -1,26 +1,26 @@
-import axios from 'axios';
+import axios from "axios";
 
-const API_BASE_URL = process.env.REACT_APP_API_URL || '/api';
+const API_BASE_URL = process.env.REACT_APP_API_URL || "/api";
 
 const api = axios.create({
   baseURL: API_BASE_URL,
   headers: {
-    'Content-Type': 'application/json',
+    "Content-Type": "application/json",
   },
 });
 
 export const getOrders = () => {
-  return api.get('/orders/');
+  return api.get("/orders/");
 };
 
 export const getOrdersConditional = (etag?: string, lastModified?: string) => {
   const headers: any = {};
-  if (etag) headers['If-None-Match'] = etag;
-  if (lastModified) headers['If-Modified-Since'] = lastModified;
-  
-  return api.get('/orders/', { 
+  if (etag) headers["If-None-Match"] = etag;
+  if (lastModified) headers["If-Modified-Since"] = lastModified;
+
+  return api.get("/orders/", {
     headers,
-    validateStatus: (status) => status === 200 || status === 304
+    validateStatus: (status) => status === 200 || status === 304,
   });
 };
 
@@ -37,7 +37,7 @@ export const updateOrderStatus = (id: string, status: string) => {
 };
 
 export const createOrder = (orderData: any) => {
-  return api.post('/orders/', orderData);
+  return api.post("/orders/", orderData);
 };
 
 export default api;
