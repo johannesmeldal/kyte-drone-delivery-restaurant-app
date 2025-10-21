@@ -1,0 +1,36 @@
+# Systemd service file for Restaurant Backend
+# Location: /etc/systemd/system/restaurant-backend.service
+
+[Unit]
+Description=Restaurant App Backend (Django/Gunicorn)
+After=network.target
+
+[Service]
+Type=notify
+User=ubuntu
+Group=ubuntu
+WorkingDirectory=/home/ubuntu/kyte-restaurant-app/backend
+Environment="DJANGO_SETTINGS_MODULE=restaurant_app.settings_production"
+Environment="DJANGO_SECRET_KEY=CHANGE_THIS_IN_PRODUCTION"
+Environment="KYTE_BACKEND_URL=http://localhost:8001"
+
+ExecStart=/home/ubuntu/kyte-restaurant-app/venv/bin/gunicorn \
+    --workers 3 \
+    --bind 127.0.0.1:8000 \
+    --timeout 60 \
+    --access-logfile /var/log/restaurant-app/gunicorn-access.log \
+    --error-logfile /var/log/restaurant-app/gunicorn-error.log \
+    --log-level info \
+    restaurant_app.wsgi:application
+
+ExecReload=/bin/kill -s HUP $MAINPID
+KillMode=mixed
+TimeoutStopSec=5
+PrivateTmp=true
+
+Restart=always
+RestartSec=5
+
+[Install]
+WantedBy=multi-user.target
+

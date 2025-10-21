@@ -98,14 +98,31 @@ Visit the mock backend at http://localhost:8001/docs to:
 - `POST /webhook/order-status` - Receive status updates from restaurant
 - `POST /webhook/cancel-order` - Cancel an order from Kyte side
 
-## Deployment
+## Production Deployment
 
-For production deployment to `<yourname>-case.sandbox.aviant.no`:
+**Live URL**: https://johannes-case.sandbox.aviant.no
 
-1. Update `REACT_APP_API_URL` in frontend
-2. Configure Django settings for production
-3. Set up proper database (PostgreSQL recommended)
-4. Configure web server (Nginx + Gunicorn)
+### Quick Deploy
+
+```bash
+./deploy.sh
+```
+
+### Full Instructions
+
+See **[DEPLOYMENT_GUIDE.md](./DEPLOYMENT_GUIDE.md)** for complete deployment instructions including:
+
+- Initial server setup
+- SSH configuration
+- Nginx and Gunicorn setup
+- Deployment workflow
+- Troubleshooting guide
+
+**Server Details:**
+- Platform: AWS EC2 Ubuntu
+- IP: 16.171.195.58
+- Port: 80 (TLS terminated by ALB)
+- SSH: `ssh -i ~/.ssh/ided25519-aws-ec2 ubuntu@16.171.195.58`
 
 ## Technologies Used
 
