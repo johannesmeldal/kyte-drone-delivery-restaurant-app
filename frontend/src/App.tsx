@@ -52,15 +52,6 @@ function App() {
     30000
   );
 
-  console.log(
-    "[App] Render - orders:",
-    orders?.length,
-    "status:",
-    status,
-    "isLoading:",
-    isLoading
-  );
-
   const handleOrderAction = async (orderId: string, action: string) => {
     try {
       await updateOrderStatus(orderId, action);
@@ -96,10 +87,9 @@ function App() {
                 : "offline"
             }`}
           ></span>
-          {status === "connected" && "Connected"}
-          {status === "polling" &&
-            `Polling (${Math.round(currentInterval / 1000)}s)`}
-          {status === "error" && "Connection Error"}
+          {status === "connected" && "✓ Live"}
+          {status === "polling" && "Checking for updates..."}
+          {status === "error" && "⚠ Connection Issue"}
         </div>
       </header>
 

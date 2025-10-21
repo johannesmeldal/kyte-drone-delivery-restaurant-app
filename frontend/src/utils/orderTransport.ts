@@ -47,7 +47,6 @@ export class SmartPollingTransport {
 
       // Handle 304 Not Modified
       if (response.status === 304) {
-        console.log("[SmartPolling] 304 Not Modified - data unchanged");
         this.onNoChange();
         return { notModified: true, data: null };
       }
@@ -66,19 +65,12 @@ export class SmartPollingTransport {
         if (newLastModified) this.lastModified = newLastModified;
 
         const data = response.data;
-        console.log(`[SmartPolling] Data updated - ${data.length} orders`);
         return { notModified: false, data };
       }
 
       throw new Error(`HTTP ${response.status}: ${response.statusText}`);
     } catch (error: any) {
-      console.error("[SmartPolling] Fetch error:", error);
-      console.error("[SmartPolling] Error details:", {
-        message: error.message,
-        code: error.code,
-        response: error.response?.data,
-        status: error.response?.status,
-      });
+      console.error("Failed to fetch orders:", error.message);
       throw error;
     }
   }
@@ -93,19 +85,11 @@ export class SmartPollingTransport {
     );
 
     if (newInterval !== this.interval) {
-      console.log(
-        `[SmartPolling] Backing off: ${this.interval}ms → ${newInterval}ms`
-      );
       this.interval = newInterval;
     }
   }
 
   private onDataChanged(): void {
-    if (this.consecutiveNoChanges > 0) {
-      console.log(
-        `[SmartPolling] Data changed - resetting to base interval: ${this.config.baseInterval}ms`
-      );
-    }
     this.consecutiveNoChanges = 0;
     this.interval = this.config.baseInterval;
   }

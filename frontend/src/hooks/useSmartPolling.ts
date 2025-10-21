@@ -28,10 +28,8 @@ export function useSmartPolling<T>(
   const poll = useCallback(async () => {
     if (!isMountedRef.current) return;
 
-    console.log('[useSmartPolling] Starting poll...');
     try {
       const result = await fetchFn();
-      console.log('[useSmartPolling] Poll result:', result);
 
       if (!isMountedRef.current) return;
 
@@ -55,7 +53,7 @@ export function useSmartPolling<T>(
 
       setIsLoading(false);
     } catch (error) {
-      console.error('[useSmartPolling] Polling error:', error);
+      console.error('Error fetching orders:', error);
       if (isMountedRef.current) {
         setStatus('error');
         setIsLoading(false);
