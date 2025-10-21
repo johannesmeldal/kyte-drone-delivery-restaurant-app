@@ -1,10 +1,9 @@
-import axios, { AxiosInstance } from 'axios';
+import api from '../services/api';
 
 interface TransportConfig {
   baseInterval: number;
   maxInterval: number;
   backoffMultiplier: number;
-  baseUrl: string;
 }
 
 interface FetchResult {
@@ -18,20 +17,10 @@ export class SmartPollingTransport {
   private lastModified: string | null = null;
   private consecutiveNoChanges = 0;
   private config: TransportConfig;
-  private api: AxiosInstance;
 
   constructor(config: TransportConfig) {
     this.config = config;
     this.interval = config.baseInterval;
-    
-    // Create axios instance with proper configuration
-    this.api = axios.create({
-      baseURL: config.baseUrl,
-      headers: {
-        'Content-Type': 'application/json',
-      },
-      validateStatus: (status) => status === 200 || status === 304,
-    });
   }
 
   async fetchOrders(since?: string): Promise<FetchResult> {
@@ -51,7 +40,10 @@ export class SmartPollingTransport {
       : '/orders/';
 
     try {
-      const response = await this.api.get(url, { headers });
+      const response = await api.get(url, { 
+        headers,
+        validateStatus: (status) => status === 200 || status === 304
+      });
 
       // Handle 304 Not Modified
       if (response.status === 304) {

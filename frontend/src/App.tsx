@@ -36,7 +36,6 @@ function App() {
       baseInterval: 2000,
       maxInterval: 30000,
       backoffMultiplier: 1.5,
-      baseUrl: process.env.REACT_APP_API_URL || "http://localhost:8000/api",
     })
   );
 
