@@ -39,12 +39,6 @@ const OrderDetail: React.FC<OrderDetailProps> = ({
   const [issueSummary, setIssueSummary] = useState("");
   const [showIssueReport, setShowIssueReport] = useState(false);
 
-  const handleCallDrone = () => {
-    // Mock function - in real implementation, this would trigger Kyte API
-    alert(`Calling Kyte to pick up order ${order.id}...`);
-    console.log("Call drone requested for order:", order.id);
-  };
-
   const handleNudgeKyte = () => {
     // Mock function - send nudge to Kyte about delayed pickup
     alert(`Nudge sent to Kyte about order ${order.id} waiting for pickup`);
@@ -128,9 +122,6 @@ const OrderDetail: React.FC<OrderDetailProps> = ({
       case "ready":
         return (
           <div className="action-buttons ready-actions">
-            <button className="btn btn-info" onClick={handleCallDrone}>
-              Call Drone
-            </button>
             <button
               className="btn btn-primary"
               onClick={() => onAction(order.id, "completed")}
