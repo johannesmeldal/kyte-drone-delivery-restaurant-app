@@ -92,9 +92,13 @@ class OrderDetailView(generics.RetrieveUpdateDestroyAPIView):
         new_status = request.data.get('status')
         cancelled_by = request.data.get('cancelled_by')
         
-        if new_status in ['accepted', 'rejected', 'delayed', 'cancelled', 'completed']:
+        if new_status in ['accepted', 'rejected', 'delayed', 'cancelled', 'ready', 'completed']:
             old_status = order.status
             order.status = new_status
+            
+            # Set ready_at timestamp when order is marked as ready
+            if new_status == 'ready' and old_status != 'ready':
+                order.ready_at = timezone.now()
             
             # Set completed_at timestamp when order is marked as completed
             if new_status == 'completed' and old_status != 'completed':

@@ -22,6 +22,7 @@ interface Order {
   status: string;
   created_at: string;
   updated_at: string;
+  ready_at?: string | null;
   completed_at?: string | null;
   special_instructions?: string;
   items: OrderItem[];

@@ -8,6 +8,7 @@ class Order(models.Model):
         ('rejected', 'Rejected'),
         ('delayed', 'Delayed'),
         ('cancelled', 'Cancelled'),
+        ('ready', 'Ready'),  # New status for food ready for pickup
         ('completed', 'Completed'),
     ]
     
@@ -19,6 +20,7 @@ class Order(models.Model):
     status = models.CharField(max_length=20, choices=STATUS_CHOICES, default='pending')
     created_at = models.DateTimeField(default=timezone.now)
     updated_at = models.DateTimeField(auto_now=True)
+    ready_at = models.DateTimeField(null=True, blank=True)  # When food became ready
     completed_at = models.DateTimeField(null=True, blank=True)
     special_instructions = models.TextField(blank=True, null=True)
     

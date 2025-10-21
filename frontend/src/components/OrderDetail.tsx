@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useState } from "react";
 import "./OrderDetail.css";
 
 interface OrderItem {
@@ -17,6 +17,7 @@ interface Order {
   status: string;
   created_at: string;
   updated_at: string;
+  ready_at?: string | null;
   completed_at?: string | null;
   special_instructions?: string;
   items: OrderItem[];
@@ -33,6 +34,33 @@ const OrderDetail: React.FC<OrderDetailProps> = ({
   onAction,
   onClose,
 }) => {
+  const [issueSummary, setIssueSummary] = useState("");
+  const [showIssueReport, setShowIssueReport] = useState(false);
+
+  const handleCallDrone = () => {
+    // Mock function - in real implementation, this would trigger Kyte API
+    alert(`Calling Kyte to pick up order ${order.id}...`);
+    console.log("Call drone requested for order:", order.id);
+  };
+
+  const handleNudgeKyte = () => {
+    // Mock function - send nudge to Kyte about delayed pickup
+    alert(`Nudge sent to Kyte about order ${order.id} waiting for pickup`);
+    console.log("Nudge sent for order:", order.id);
+  };
+
+  const handleReportIssue = () => {
+    if (!issueSummary.trim()) {
+      alert("Please describe the issue");
+      return;
+    }
+    // Mock function - in real implementation, this would send issue to Kyte
+    alert(`Issue reported for order ${order.id}: ${issueSummary}`);
+    console.log("Issue reported:", { orderId: order.id, issue: issueSummary });
+    setShowIssueReport(false);
+    setIssueSummary("");
+  };
+
   const getActionButtons = () => {
     switch (order.status) {
       case "pending":
@@ -42,16 +70,17 @@ const OrderDetail: React.FC<OrderDetailProps> = ({
               className="btn btn-accept"
               onClick={() => onAction(order.id, "accepted")}
             >
-              Accept Order
+              ✓ Accept Order
             </button>
             <button
               className="btn btn-reject"
               onClick={() => onAction(order.id, "rejected")}
             >
-              Reject Order
+              ✕ Reject Order
             </button>
           </div>
         );
+
       case "accepted":
         return (
           <div className="action-buttons">
@@ -59,22 +88,23 @@ const OrderDetail: React.FC<OrderDetailProps> = ({
               className="btn btn-warning"
               onClick={() => onAction(order.id, "delayed")}
             >
-              Mark as Delayed
+              ⏱ Mark as Delayed
             </button>
             <button
               className="btn btn-danger"
               onClick={() => onAction(order.id, "cancelled")}
             >
-              Cancel Preparation
+              ✕ Cancel Preparation
             </button>
             <button
               className="btn btn-success"
-              onClick={() => onAction(order.id, "completed")}
+              onClick={() => onAction(order.id, "ready")}
             >
-              Mark as Done
+              📦 Mark as Ready
             </button>
           </div>
         );
+
       case "delayed":
         return (
           <div className="action-buttons">
@@ -82,16 +112,67 @@ const OrderDetail: React.FC<OrderDetailProps> = ({
               className="btn btn-danger"
               onClick={() => onAction(order.id, "cancelled")}
             >
-              Cancel Preparation
+              ✕ Cancel Preparation
             </button>
             <button
               className="btn btn-success"
-              onClick={() => onAction(order.id, "completed")}
+              onClick={() => onAction(order.id, "ready")}
             >
-              Mark as Done
+              📦 Mark as Ready
             </button>
           </div>
         );
+
+      case "ready":
+        return (
+          <div className="action-buttons ready-actions">
+            <button className="btn btn-info" onClick={handleCallDrone}>
+              📞 Call Drone
+            </button>
+            <button
+              className="btn btn-primary"
+              onClick={() => onAction(order.id, "completed")}
+            >
+              ✓ Confirm Pickup
+            </button>
+            <button
+              className="btn btn-secondary"
+              onClick={() => setShowIssueReport(!showIssueReport)}
+            >
+              ⚠ Report Issue
+            </button>
+
+            {showIssueReport && (
+              <div className="issue-report-form">
+                <textarea
+                  className="issue-textarea"
+                  placeholder="Describe the issue (e.g., food damaged, wrong order, etc.)"
+                  value={issueSummary}
+                  onChange={(e) => setIssueSummary(e.target.value)}
+                  rows={3}
+                />
+                <div className="issue-actions">
+                  <button
+                    className="btn btn-sm btn-danger"
+                    onClick={handleReportIssue}
+                  >
+                    Submit Report
+                  </button>
+                  <button
+                    className="btn btn-sm btn-secondary"
+                    onClick={() => {
+                      setShowIssueReport(false);
+                      setIssueSummary("");
+                    }}
+                  >
+                    Cancel
+                  </button>
+                </div>
+              </div>
+            )}
+          </div>
+        );
+
       default:
         return null;
     }
@@ -107,6 +188,16 @@ const OrderDetail: React.FC<OrderDetailProps> = ({
     });
   };
 
+  const getWaitingTime = () => {
+    if (!order.ready_at) return null;
+    const readyTime = new Date(order.ready_at).getTime();
+    const now = new Date().getTime();
+    const minutes = Math.floor((now - readyTime) / 1000 / 60);
+    return minutes;
+  };
+
+  const waitingMinutes = getWaitingTime();
+
   return (
     <div className="order-detail">
       <div className="order-detail-header">
@@ -117,6 +208,19 @@ const OrderDetail: React.FC<OrderDetailProps> = ({
       </div>
 
       <div className="order-detail-content">
+        {order.status === "ready" && waitingMinutes && waitingMinutes > 10 && (
+          <div className="alert-banner">
+            <span className="alert-icon">⏰</span>
+            <div>
+              <strong>This order has been ready for {waitingMinutes} minutes</strong>
+              <p>Consider nudging Kyte to speed up pickup</p>
+            </div>
+            <button className="btn btn-sm btn-warning" onClick={handleNudgeKyte}>
+              Nudge Kyte
+            </button>
+          </div>
+        )}
+
         <div className="detail-section">
           <h3>Customer Information</h3>
           <div className="detail-grid">
@@ -136,6 +240,12 @@ const OrderDetail: React.FC<OrderDetailProps> = ({
               <label>Order Time:</label>
               <span>{formatDateTime(order.created_at)}</span>
             </div>
+            {order.ready_at && (
+              <div className="detail-item">
+                <label>Ready Since:</label>
+                <span>{formatDateTime(order.ready_at)}</span>
+              </div>
+            )}
           </div>
         </div>
 
@@ -169,7 +279,7 @@ const OrderDetail: React.FC<OrderDetailProps> = ({
               className={`timeline-item ${
                 order.status === "pending"
                   ? "active"
-                  : ["accepted", "delayed", "completed"].includes(order.status)
+                  : ["accepted", "delayed", "ready", "completed"].includes(order.status)
                   ? "completed"
                   : "inactive"
               }`}
@@ -190,30 +300,40 @@ const OrderDetail: React.FC<OrderDetailProps> = ({
             >
               <div className="timeline-dot"></div>
               <span>
-                {order.status === "delayed"
-                  ? "In Progress (Delayed)"
-                  : "In Progress"}
+                {order.status === "delayed" ? "In Progress (Delayed)" : "In Progress"}
               </span>
+            </div>
+            <div
+              className={`timeline-item ${
+                order.status === "ready"
+                  ? "active"
+                  : ["accepted", "delayed"].includes(order.status)
+                  ? "inactive"
+                  : order.status === "completed"
+                  ? "completed"
+                  : "inactive"
+              }`}
+            >
+              <div className="timeline-dot"></div>
+              <span>Ready for Pickup</span>
             </div>
             <div
               className={`timeline-item ${
                 order.status === "completed"
                   ? "active"
-                  : ["accepted", "delayed"].includes(order.status)
+                  : order.status === "ready"
                   ? "inactive"
                   : "inactive"
               }`}
             >
               <div className="timeline-dot"></div>
-              <span>Preparation Complete</span>
+              <span>Picked Up</span>
             </div>
           </div>
           {(order.status === "rejected" || order.status === "cancelled") && (
             <div className="status-message cancelled">
               <strong>
-                {order.status === "rejected"
-                  ? "⚠️ Order Rejected"
-                  : "✕ Order Cancelled"}
+                {order.status === "rejected" ? "⚠️ Order Rejected" : "✕ Order Cancelled"}
               </strong>
             </div>
           )}

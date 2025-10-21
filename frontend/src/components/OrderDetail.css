@@ -294,6 +294,119 @@
   background: #059669;
 }
 
+.btn-info {
+  background: #3b82f6;
+  color: white;
+}
+
+.btn-info:hover {
+  background: #2563eb;
+}
+
+.btn-primary {
+  background: #10b981;
+  color: white;
+  font-weight: 700;
+}
+
+.btn-primary:hover {
+  background: #059669;
+}
+
+.btn-secondary {
+  background: #6b7280;
+  color: white;
+}
+
+.btn-secondary:hover {
+  background: #4b5563;
+}
+
+.btn-sm {
+  padding: 0.5rem 1rem;
+  font-size: 0.875rem;
+}
+
+.ready-actions {
+  flex-direction: column;
+  gap: 0.75rem;
+}
+
+.alert-banner {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  padding: 1rem 1.5rem;
+  background: linear-gradient(135deg, #fef3c7 0%, #fde68a 100%);
+  border: 2px solid #f59e0b;
+  border-radius: 12px;
+  margin-bottom: 1rem;
+  animation: gentle-pulse-banner 3s infinite;
+}
+
+@keyframes gentle-pulse-banner {
+  0%,
+  100% {
+    box-shadow: 0 0 0 0 rgba(245, 158, 11, 0.4);
+  }
+  50% {
+    box-shadow: 0 0 0 8px rgba(245, 158, 11, 0);
+  }
+}
+
+.alert-banner .alert-icon {
+  font-size: 2rem;
+  flex-shrink: 0;
+}
+
+.alert-banner div {
+  flex: 1;
+}
+
+.alert-banner strong {
+  display: block;
+  color: #92400e;
+  font-size: 1rem;
+  margin-bottom: 0.25rem;
+}
+
+.alert-banner p {
+  margin: 0;
+  color: #b45309;
+  font-size: 0.875rem;
+}
+
+.issue-report-form {
+  width: 100%;
+  margin-top: 1rem;
+  padding: 1rem;
+  background: #f9fafb;
+  border: 1px solid #d1d5db;
+  border-radius: 8px;
+}
+
+.issue-textarea {
+  width: 100%;
+  padding: 0.75rem;
+  border: 1px solid #d1d5db;
+  border-radius: 8px;
+  font-size: 0.875rem;
+  font-family: inherit;
+  resize: vertical;
+  margin-bottom: 0.75rem;
+}
+
+.issue-textarea:focus {
+  outline: none;
+  border-color: #3b82f6;
+  box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
+}
+
+.issue-actions {
+  display: flex;
+  gap: 0.5rem;
+}
+
 @media (max-width: 768px) {
   .detail-grid {
     grid-template-columns: 1fr;
@@ -305,5 +418,10 @@
 
   .order-detail {
     max-height: 90vh;
+  }
+
+  .alert-banner {
+    flex-direction: column;
+    text-align: center;
   }
 }

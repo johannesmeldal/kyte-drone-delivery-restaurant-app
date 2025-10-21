@@ -1,5 +1,6 @@
 import React, { useState } from "react";
 import OrderCard from "./OrderCard";
+import TabNavigation from "./TabNavigation";
 import "./OrderSections.css";
 
 interface OrderItem {
@@ -18,6 +19,7 @@ interface Order {
   status: string;
   created_at: string;
   updated_at: string;
+  ready_at?: string | null;
   completed_at?: string | null;
   special_instructions?: string;
   items: OrderItem[];
@@ -29,153 +31,129 @@ interface OrderSectionsProps {
   selectedOrderId?: string;
 }
 
-type SortBy = "completed_at" | "created_at";
-type FilterBy = "completed" | "cancelled";
-
 const OrderSections: React.FC<OrderSectionsProps> = ({
   orders,
   onSelectOrder,
   selectedOrderId,
 }) => {
-  const [recentOrdersSort, setRecentOrdersSort] =
-    useState<SortBy>("completed_at");
-  const [recentOrdersFilter, setRecentOrdersFilter] =
-    useState<FilterBy>("completed");
+  const [activeTab, setActiveTab] = useState<string>("incoming");
+  const [showSecondaryMenu, setShowSecondaryMenu] = useState(false);
 
-  // Incoming Orders: pending status
+  // Filter orders by status
   const incomingOrders = orders.filter((order) => order.status === "pending");
-
-  // Active Orders: accepted or delayed status
   const activeOrders = orders.filter(
     (order) => order.status === "accepted" || order.status === "delayed"
   );
-
-  // Recent Orders: completed, rejected, or cancelled
-  const allRecentOrders = orders.filter(
-    (order) =>
-      order.status === "completed" ||
-      order.status === "rejected" ||
-      order.status === "cancelled"
+  const readyOrders = orders.filter((order) => order.status === "ready");
+  const completedOrders = orders.filter((order) => order.status === "completed");
+  const cancelledOrders = orders.filter(
+    (order) => order.status === "rejected" || order.status === "cancelled"
   );
 
-  // Filter recent orders based on selected filter
-  const filteredRecentOrders = allRecentOrders.filter((order) => {
-    if (recentOrdersFilter === "completed") {
-      return order.status === "completed";
-    } else {
-      // cancelled filter shows both rejected and cancelled
-      return order.status === "rejected" || order.status === "cancelled";
-    }
-  });
-
-  // Sort recent orders based on selected sort option
-  const sortedRecentOrders = [...filteredRecentOrders].sort((a, b) => {
-    if (recentOrdersSort === "completed_at") {
-      // Sort by completed_at (most recent first)
-      const timeA = a.completed_at ? new Date(a.completed_at).getTime() : 0;
-      const timeB = b.completed_at ? new Date(b.completed_at).getTime() : 0;
-      return timeB - timeA;
-    } else {
-      // Sort by created_at (most recent first)
-      const timeA = new Date(a.created_at).getTime();
-      const timeB = new Date(b.created_at).getTime();
-      return timeB - timeA;
-    }
-  });
-
-  const toggleSort = () => {
-    setRecentOrdersSort((prev) =>
-      prev === "completed_at" ? "created_at" : "completed_at"
-    );
+  // Get counts for badges
+  const counts = {
+    incoming: incomingOrders.length,
+    active: activeOrders.length,
+    ready: readyOrders.length,
   };
 
-  const toggleFilter = () => {
-    setRecentOrdersFilter((prev) =>
-      prev === "completed" ? "cancelled" : "completed"
-    );
+  // Determine which orders to display based on active tab
+  const getDisplayedOrders = () => {
+    switch (activeTab) {
+      case "incoming":
+        return incomingOrders;
+      case "active":
+        return activeOrders;
+      case "ready":
+        return readyOrders;
+      case "completed":
+        return completedOrders;
+      case "cancelled":
+        return cancelledOrders;
+      default:
+        return [];
+    }
+  };
+
+  const displayedOrders = getDisplayedOrders();
+
+  // Get tab title and color
+  const getTabInfo = () => {
+    switch (activeTab) {
+      case "incoming":
+        return { title: "Incoming Orders", color: "gray", icon: "📥" };
+      case "active":
+        return { title: "Active Orders", color: "blue", icon: "👨‍🍳" };
+      case "ready":
+        return { title: "Ready for Pickup", color: "orange", icon: "📦" };
+      case "completed":
+        return { title: "Completed Orders", color: "green", icon: "✓" };
+      case "cancelled":
+        return { title: "Cancelled/Rejected", color: "red", icon: "✕" };
+      default:
+        return { title: "", color: "gray", icon: "" };
+    }
+  };
+
+  const tabInfo = getTabInfo();
+
+  // Check if order has been ready for more than 10 minutes
+  const getWaitingTime = (order: Order) => {
+    if (!order.ready_at) return 0;
+    const readyTime = new Date(order.ready_at).getTime();
+    const now = new Date().getTime();
+    return Math.floor((now - readyTime) / 1000 / 60); // minutes
   };
 
   return (
-    <div className="order-sections">
-      {/* Incoming Orders Section */}
-      <div className="order-section">
-        <div className="section-header">
-          <h2>Incoming Orders</h2>
-          <span className="section-count">{incomingOrders.length}</span>
-        </div>
-        <div className="section-content">
-          {incomingOrders.length === 0 ? (
-            <div className="empty-state">No incoming orders</div>
-          ) : (
-            incomingOrders.map((order) => (
-              <OrderCard
-                key={order.id}
-                order={order}
-                isSelected={selectedOrderId === order.id}
-                onClick={() => onSelectOrder(order)}
-              />
-            ))
-          )}
-        </div>
-      </div>
+    <div className="order-sections-container">
+      <TabNavigation
+        activeTab={activeTab}
+        onTabChange={setActiveTab}
+        counts={counts}
+        showSecondaryMenu={showSecondaryMenu}
+        onToggleSecondaryMenu={() => setShowSecondaryMenu(!showSecondaryMenu)}
+      />
 
-      {/* Active Orders Section */}
-      <div className="order-section">
-        <div className="section-header">
-          <h2>Active Orders</h2>
-          <span className="section-count">{activeOrders.length}</span>
+      <div className={`tab-content tab-${tabInfo.color}`}>
+        <div className="tab-header">
+          <h2>
+            <span className="tab-icon">{tabInfo.icon}</span>
+            {tabInfo.title}
+          </h2>
+          <span className="order-count">{displayedOrders.length}</span>
         </div>
-        <div className="section-content">
-          {activeOrders.length === 0 ? (
-            <div className="empty-state">No active orders</div>
-          ) : (
-            activeOrders.map((order) => (
-              <OrderCard
-                key={order.id}
-                order={order}
-                isSelected={selectedOrderId === order.id}
-                onClick={() => onSelectOrder(order)}
-              />
-            ))
-          )}
-        </div>
-      </div>
 
-      {/* Recent Orders Section */}
-      <div className="order-section recent-orders">
-        <div className="section-header">
-          <h2>Recent Orders</h2>
-          <div className="section-controls">
-            <button className="filter-toggle" onClick={toggleFilter}>
-              {recentOrdersFilter === "completed"
-                ? "✓ Completed"
-                : "✕ Cancelled/Rejected"}
-            </button>
-            <button className="sort-toggle" onClick={toggleSort}>
-              Sort:{" "}
-              {recentOrdersSort === "completed_at"
-                ? "Completion"
-                : "Order Time"}
-            </button>
-            <span className="section-count">{filteredRecentOrders.length}</span>
-          </div>
-        </div>
-        <div className="section-content">
-          {sortedRecentOrders.length === 0 ? (
+        <div className="orders-list">
+          {displayedOrders.length === 0 ? (
             <div className="empty-state">
-              No{" "}
-              {recentOrdersFilter === "completed" ? "completed" : "cancelled"}{" "}
-              orders
+              {activeTab === "incoming" && "No new orders"}
+              {activeTab === "active" && "No orders in progress"}
+              {activeTab === "ready" && "No orders ready for pickup"}
+              {activeTab === "completed" && "No completed orders"}
+              {activeTab === "cancelled" && "No cancelled orders"}
             </div>
           ) : (
-            sortedRecentOrders.map((order) => (
-              <OrderCard
-                key={order.id}
-                order={order}
-                isSelected={selectedOrderId === order.id}
-                onClick={() => onSelectOrder(order)}
-              />
-            ))
+            displayedOrders.map((order) => {
+              const waitingMinutes = getWaitingTime(order);
+              const showWarning = activeTab === "ready" && waitingMinutes > 10;
+
+              return (
+                <div key={order.id} className="order-card-wrapper">
+                  <OrderCard
+                    order={order}
+                    isSelected={selectedOrderId === order.id}
+                    onClick={() => onSelectOrder(order)}
+                  />
+                  {showWarning && (
+                    <div className="waiting-warning">
+                      ⏰ Ready for {waitingMinutes} minutes — Consider nudging
+                      Kyte
+                    </div>
+                  )}
+                </div>
+              );
+            })
           )}
         </div>
       </div>
