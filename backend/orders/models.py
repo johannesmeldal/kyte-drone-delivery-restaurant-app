@@ -13,6 +13,7 @@ class Order(models.Model):
     ]
     
     id = models.CharField(max_length=50, primary_key=True)
+    display_number = models.IntegerField(unique=True, null=True, blank=True)  # 3-digit friendly number
     customer_name = models.CharField(max_length=100)
     customer_phone = models.CharField(max_length=20)
     delivery_address = models.TextField()
@@ -24,8 +25,20 @@ class Order(models.Model):
     completed_at = models.DateTimeField(null=True, blank=True)
     special_instructions = models.TextField(blank=True, null=True)
     
+    def save(self, *args, **kwargs):
+        # Auto-assign display_number if not set
+        if not self.display_number:
+            # Get the highest display_number and add 1, cycling back to 100 if > 999
+            last_order = Order.objects.order_by('-display_number').first()
+            if last_order and last_order.display_number:
+                next_num = last_order.display_number + 1
+                self.display_number = next_num if next_num <= 999 else 100
+            else:
+                self.display_number = 100  # Start at 100
+        super().save(*args, **kwargs)
+    
     def __str__(self):
-        return f"Order #{self.id} - {self.customer_name}"
+        return f"Order #{self.display_number} - {self.customer_name}"
 
 class OrderItem(models.Model):
     order = models.ForeignKey(Order, related_name='items', on_delete=models.CASCADE)

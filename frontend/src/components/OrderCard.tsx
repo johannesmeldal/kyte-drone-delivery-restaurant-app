@@ -1,5 +1,6 @@
 import React from 'react';
 import './OrderCard.css';
+import { formatOrderNumber } from '../utils/orderUtils';
 
 interface OrderItem {
   name: string;
@@ -10,6 +11,7 @@ interface OrderItem {
 
 interface Order {
   id: string;
+  display_number?: number;
   customer_name: string;
   customer_phone: string;
   delivery_address: string;
@@ -53,7 +55,7 @@ const OrderCard: React.FC<OrderCardProps> = ({ order, isSelected, onClick }) => 
     >
       <div className="order-header">
         <div className="order-info">
-          <span className="order-id">#{order.id}</span>
+          <span className="order-id">{formatOrderNumber(order)}</span>
           <span className="order-time">{formatTime(order.created_at)}</span>
         </div>
         <div 

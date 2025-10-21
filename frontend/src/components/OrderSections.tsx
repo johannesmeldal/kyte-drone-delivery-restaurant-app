@@ -12,6 +12,7 @@ interface OrderItem {
 
 interface Order {
   id: string;
+  display_number?: number;
   customer_name: string;
   customer_phone: string;
   delivery_address: string;

@@ -1,5 +1,6 @@
 import React, { useState } from "react";
 import "./OrderDetail.css";
+import { formatOrderNumber } from "../utils/orderUtils";
 
 interface OrderItem {
   name: string;
@@ -10,6 +11,7 @@ interface OrderItem {
 
 interface Order {
   id: string;
+  display_number?: number;
   customer_name: string;
   customer_phone: string;
   delivery_address: string;
@@ -201,7 +203,7 @@ const OrderDetail: React.FC<OrderDetailProps> = ({
   return (
     <div className="order-detail">
       <div className="order-detail-header">
-        <h2>Order #{order.id}</h2>
+        <h2>Order {formatOrderNumber(order)}</h2>
         <button className="close-btn" onClick={onClose}>
           ×
         </button>
